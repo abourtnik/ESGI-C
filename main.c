@@ -59,8 +59,9 @@ int main() {
     char choix_bis [10];
     int choix = 0;
 
-    int id = 34;
-
+    int id = 0;
+    int id2= 0;
+    double somme = 0.0;
 
     char temp_nom[100] = "";
     char temp_prenom[100] = "";
@@ -91,15 +92,31 @@ int main() {
 
         // Le menu
 
+
+        printf("MENU GENERALE : \n\n");
+
+        printf("*** GESTION DES CLIENTS ***\n\n");
+
         printf("1 ---------- Creer un client\n");
         printf("2 ---------- Liste des clients\n");
         printf("3 ---------- Modifier un client\n");
         printf("4 ---------- Supprimmer un client\n");
-        printf("5 ---------- Rechercher un client\n");
+        printf("5 ---------- Rechercher un client\n\n");
+
+        printf("*** GESTION DES COMPTES ***\n\n");
+
         printf("6 ---------- Creer un compte\n");
         printf("7 ---------- Liste des comptes\n");
         printf("8 ---------- Liste des comptes d'un client\n");
-        printf("9 ---------- Fermer un compte\n");
+        printf("9 ---------- Fermer un compte\n\n");
+
+        printf("*** GESTION DES OPERATIONS ***\n\n");
+
+        printf("10 ---------- Crediter un compte\n");
+        printf("11 ---------- Debiter un compte\n");
+        printf("12 ---------- Effectuer un virement\n");
+        printf("13 ---------- Liste des operations\n\n");
+
         printf("0 ---------- QUITTER\n\n");
         printf("---------- Votre choix : ");
 
@@ -334,6 +351,153 @@ int main() {
                     printf("\n---------- LE COMTE A ETE FERME AVEC SUCCESS ---------- \n\n");
                 }
 
+
+                break;
+
+            case 10:
+
+                printf("\n---------- Entrez l'identifiant du compte à créditer : ");
+                scanf("%d", &id);
+
+                printf("\n---------- Entrez la somme à créditer : ");
+                scanf("%lf", &somme);
+
+                sprintf(sql, "UPDATE Compte SET solde = solde + %lf WHERE id = %d;" , somme , id);
+
+                rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    printf("\n-------- AUCUN COMPTE CORRESPONDANT A CETTE ID N A ETE TROUVE ---------- \n\n");
+                    sqlite3_free(zErrMsg);
+                }
+                else {
+                    printf("\n---------- LE COMTE A ETE CREDITE AVEC SUCCESS ---------- \n\n");
+                }
+
+                // Historique
+
+                sprintf(sql, "INSERT INTO Operation (type, somme , compte_id_1) VALUES ('credit', %lf , %d);" , somme , id);
+
+                rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    fprintf(stderr, "Echec d'insertion 1 : %s\n", zErrMsg);
+                    sqlite3_free(zErrMsg);
+                }
+                else {
+                    printf("\n---------- ENREGISTRE ---------- \n\n");
+                }
+
+                break;
+
+            case 11:
+
+                printf("\n---------- Entrez l'identifiant du compte à debiter : ");
+                scanf("%d", &id);
+
+                printf("\n---------- Entrez la somme à debiter : ");
+                scanf("%lf", &somme);
+
+                sprintf(sql, "UPDATE Compte SET solde = solde - %lf WHERE id = %d;" , somme , id);
+
+                rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    printf("\n-------- AUCUN COMPTE CORRESPONDANT A CETTE ID N A ETE TROUVE ---------- \n\n");
+                    sqlite3_free(zErrMsg);
+                }
+                else {
+                    printf("\n---------- LE COMTE A ETE DEBITE AVEC SUCCESS ---------- \n\n");
+                }
+
+                // Historique
+
+                sprintf(sql, "INSERT INTO Operation (type, somme , compte_id_1) VALUES ('debit', %lf , %d);" , somme , id);
+
+                rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    fprintf(stderr, "Echec d'insertion 2 : %s\n", zErrMsg);
+                    sqlite3_free(zErrMsg);
+                }
+                else {
+                    printf("\n---------- ENREGISTRE ---------- \n\n");
+                }
+
+                break;
+
+            case 12:
+
+                printf("\n---------- VIREMENT ----------");
+
+                printf("\n---------- Entrez l'identifiant du compte à debiter : ");
+                scanf("%d", &id);
+
+                printf("\n---------- Entrez l'identifiant du compte à crediter : ");
+                scanf("%d", &id2);
+
+                printf("\n---------- Entrer la somme du transfert : ");
+                scanf("%lf", &somme);
+
+
+                // Debit
+
+                sprintf(sql, "UPDATE Compte SET solde = solde - %lf WHERE id = %d;" , somme , id);
+
+                rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    printf("\n-------- AUCUN COMPTE CORRESPONDANT A CETTE ID N A ETE TROUVE ---------- \n\n");
+                    sqlite3_free(zErrMsg);
+                }
+                else {
+                    printf("\n---------- LE COMTE A ETE DEBITE AVEC SUCCESS ---------- \n\n");
+                }
+
+                // Credit
+
+                sprintf(sql, "UPDATE Compte SET solde = solde + %lf WHERE id = %d;" , somme , id2);
+
+                rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    printf("\n-------- AUCUN COMPTE CORRESPONDANT A CETTE ID N A ETE TROUVE ---------- \n\n");
+                    sqlite3_free(zErrMsg);
+                }
+                else {
+                    printf("\n---------- LE COMTE A ETE CREDITER AVEC SUCCESS ---------- \n\n");
+                }
+
+                // Historique
+
+                sprintf(sql, "INSERT INTO Operation (type, somme , compte_id_1 , compte_id_2) VALUES ('virement', %lf , %d , %d);" , somme , id , id2);
+
+                rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    fprintf(stderr, "Echec d'insertion 3 : %s\n", zErrMsg);
+                    sqlite3_free(zErrMsg);
+                }
+                else {
+                    printf("\n---------- ENREGISTRE ---------- \n\n");
+                }
+
+                break;
+
+            case 13:
+
+                printf("\n---------- LISTE DES OPERATIONS DE LA BANQUE : ---------- \n\n");
+
+                strcpy(sql, "SELECT * FROM Operation");
+
+                rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    fprintf(stderr, "Echec recupration: %s\n", zErrMsg);
+                    sqlite3_free(zErrMsg);
+                }
+
+                printf("\n");
 
                 break;
 
