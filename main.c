@@ -82,6 +82,7 @@ int main() {
         printf("Connexion a la base de donness reussi\n");
     }
 
+    // Debut du programme
 
     printf("\n\n ---------- BIENVENUE DANS LA BANQUE ! ---------- \n\n");
 
@@ -115,9 +116,14 @@ int main() {
         printf("10 ---------- Crediter un compte\n");
         printf("11 ---------- Debiter un compte\n");
         printf("12 ---------- Effectuer un virement\n");
-        printf("13 ---------- Liste des operations\n\n");
+        printf("13 ---------- Liste des operations\n");
+        printf("14 ---------- Exporter les operations\n\n");
 
-        printf("0 ---------- QUITTER\n\n");
+        printf("*** ADMINISTARATION ***\n\n");
+
+        printf("15 ---------- Total de tous les comptes de la banque\n");
+        printf("16 ---------- Exporter l'ensemble des donnees\n\n");
+
         printf("---------- Votre choix : ");
 
         scanf("%s", &choix_bis);
@@ -189,7 +195,7 @@ int main() {
 
                 sprintf(sql, "UPDATE Client set nom = '%s' , prenom = '%s' , profession = '%s', telephone = '%s' WHERE id=%d;" , c2.nom , c2.prenom , c2.profession , c2.telephone , id);
 
-                printf("SQL : %s\n" , sql);
+                //printf("SQL : %s\n" , sql);
 
                 rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
 
@@ -211,7 +217,7 @@ int main() {
 
                 sprintf(sql, "DELETE from Client WHERE id = %d;" , id);
 
-                printf("SQL : %s\n" , sql);
+                //printf("SQL : %s\n" , sql);
 
                 rc = sqlite3_exec(db, sql, NULL , (void*)data, &zErrMsg);
 
@@ -278,7 +284,7 @@ int main() {
 
                 printf("\n---------- LISTE DES COMPTES DE LA BANQUE : ---------- \n\n");
 
-                strcpy(sql, "SELECT * from Compte");
+                strcpy(sql, "SELECT Compte.id , Compte.solde , Compte.taux , Client.nom as client from Compte INNER JOIN Client on Client.id = Compte.id_client");
 
                 rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
 
@@ -384,9 +390,6 @@ int main() {
                     fprintf(stderr, "Echec d'insertion 1 : %s\n", zErrMsg);
                     sqlite3_free(zErrMsg);
                 }
-                else {
-                    printf("\n---------- ENREGISTRE ---------- \n\n");
-                }
 
                 break;
 
@@ -419,9 +422,6 @@ int main() {
                 if( rc != SQLITE_OK ) {
                     fprintf(stderr, "Echec d'insertion 2 : %s\n", zErrMsg);
                     sqlite3_free(zErrMsg);
-                }
-                else {
-                    printf("\n---------- ENREGISTRE ---------- \n\n");
                 }
 
                 break;
@@ -478,9 +478,6 @@ int main() {
                     fprintf(stderr, "Echec d'insertion 3 : %s\n", zErrMsg);
                     sqlite3_free(zErrMsg);
                 }
-                else {
-                    printf("\n---------- ENREGISTRE ---------- \n\n");
-                }
 
                 break;
 
@@ -500,6 +497,47 @@ int main() {
                 printf("\n");
 
                 break;
+
+            case 14:
+
+                printf("\n---------- EXPORT DES OPERATIONS : ---------- \n\n");
+
+                system("sqlite3 -header -csv '""banque.db' 'select * from Operation;' > /Users/anton/Desktop/operation.csv");
+
+
+                printf("\n---------- un fichier operation.csv a ete cree sur votre bureau . ---------- \n\n");
+
+                break;
+
+
+            case 15:
+
+                printf("\n---------- TOTAL DES COMPTES DE LA BANQUE ---------- \n\n");
+
+                strcpy(sql, "SELECT  SUM(solde) as Total From Compte");
+
+                rc = sqlite3_exec(db, sql, callback, (void*)data, &zErrMsg);
+
+                if( rc != SQLITE_OK ) {
+                    fprintf(stderr, "Echec recuperation: %s\n", zErrMsg);
+                    sqlite3_free(zErrMsg);
+                }
+
+                printf("\n");
+
+                break;
+
+            case 16:
+
+                printf("\n---------- EXPORT DES DONNEES : ---------- \n\n");
+
+                system("sqlite3 -header -csv '""banque.db' 'select * from Client;select * from Compte;select * from Operation;' > /Users/anton/Desktop/data.csv");
+
+
+                printf("\n---------- un fichier data.csv a ete cree sur votre bureau . ---------- \n\n");
+
+                break;
+
 
             default:
 
